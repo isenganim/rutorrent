@@ -253,7 +253,7 @@ RUN apk --update --no-cache add \
 
 COPY rootfs /
 
-VOLUME [ "/config", "/data/downloads", "/passwd" ]
+VOLUME [ "/config", "/data", "/passwd" ]
 
 ENTRYPOINT [ "/init" ]
 

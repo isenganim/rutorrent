@@ -93,7 +93,7 @@ docker run -d --name rutorrent \
   -p 9000:9000 \
   -p 50000:50000 \
   -v $(pwd)/config:/config \
-  -v $(pwd)/downloads:/data/downloads \
+  -v $(pwd)/downloads:/data \
   -v $(pwd)/passwd:/passwd \
   k44sh/rutorrent:latest && \
   docker logs -f rutorrent
@@ -107,7 +107,7 @@ docker run -d --name rutorrent \
 * `PUID`: rTorrent user id (default `1000`)
 * `PGID`: rTorrent group id (default `1000`)
 * `CONFIG_PATH`: ruTorrent config path (default `/config`)
-* `DOWNLOAD_PATH`: Downloads path (default `/data/downloads`)
+* `DOWNLOAD_PATH`: Downloads path (default `/data`)
 * `WAN_IP`: Public IP address reported to the tracker (default auto resolved with `dig +short myip.opendns.com @resolver1.opendns.com`)
 * `MEMORY_LIMIT`: PHP memory limit (default `512M`)
 * `UPLOAD_MAX_SIZE`: Upload max size (default `16M`)
@@ -156,7 +156,7 @@ docker run -d --name rutorrent \
 ## Volumes
 
 * `/config`: rTorrent / ruTorrent config, session files, log, ...
-* `/data/downloads`: Downloaded files
+* `/data`: Downloaded files
 * `/passwd`: Contains htpasswd files for basic auth
 
 > :information_source: Note that the volumes should be owned by the user/group with the specified `PUID` and `PGID`. If you don't
@@ -184,7 +184,7 @@ populate this file with a user / password.
 
 ### WebDAV
 
-WebDAV allows you to retrieve your completed torrent files in `/data/downloads/complete` on port `9000`. Like XMLRPC, these
+WebDAV allows you to retrieve your completed torrent files in `/data` on port `9000`. Like XMLRPC, these
 requests can be secured with basic authentication through the `/passwd/webdav.htpasswd` file in which you will need to
 add a username with his password. See below to populate this file with a user / password.
 
