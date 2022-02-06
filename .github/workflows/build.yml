@@ -45,7 +45,6 @@ jobs:
             org.opencontainers.image.source=https://github.com/k44sh/rutorrent
             org.opencontainers.image.documentation=https://github.com/k44sh/rutorrent
             org.opencontainers.image.description=rTorrent and ruTorrent Docker image based on Alpine Linux
-            org.opencontainers.image.version=version
             org.opencontainers.image.licenses=MIT
             org.opencontainers.image.vendor=k44sh
       -
