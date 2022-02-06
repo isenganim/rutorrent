@@ -22,6 +22,7 @@ echo -e "\n${bold}rTorrent/ruTorrent Configuration${norm}\n"
 # General
 CONFIG_PATH=${CONFIG_PATH:-/config}
 DOWNLOAD_PATH=${DOWNLOAD_PATH:-/data/downloads}
+TOPDIR_PATH=${TOPDIR_PATH:-/data}
 WAN_IP=${WAN_IP:-$(dig +short myip.opendns.com @resolver1.opendns.com)}
 WAN_IP=${WAN_IP:-$(curl ifconfig.me)}
 TZ=${TZ:-UTC}
@@ -177,12 +178,13 @@ mkdir -p /passwd \
   ${CONFIG_PATH}/rutorrent/share/settings \
   ${CONFIG_PATH}/rutorrent/themes \
   ${DOWNLOAD_PATH} \
+  ${TOPDIR_PATH}
 
 touch /passwd/rpc.htpasswd \
   /passwd/rutorrent.htpasswd \
   /passwd/webdav.htpasswd \
   ${CONFIG_PATH}/rtorrent/log/rtorrent.log \
-  "${RU_LOG_FILE}"
+  ${RU_LOG_FILE}
 
 rm -f ${CONFIG_PATH}/rtorrent/.session/rtorrent.lock
 
@@ -262,7 +264,7 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 \$overwriteUploadedTorrents = ${RU_OVERWRITE_UPLOADED_TORRENTS};
 
 // Upper available directory. Absolute path with trail slash.
-\$topDirectory = '${DOWNLOAD_PATH}';
+\$topDirectory = '${TOPDIR_PATH}';
 \$forbidUserSettings = ${RU_FORBID_USER_SETTINGS};
 
 // For web->rtorrent link through unix domain socket
@@ -356,7 +358,7 @@ global \$pathToExternals;
 \$config['textExtensions'] = 'log|txt|nfo|sfv|xml|html';
 
 // see what 7zip extraction supports as type by file extension
-\$config['fileExtractExtensions'] = '7z|bzip2|t?bz2|t?g|gz[ip]?|iso|img|lzma|rar|tar|t?xz|zip|z01|wim';
+\$config['fileExtractExtensions'] = '7z|bzip2|t?bz2|tgz|gz(ip)?|iso|img|lzma|rar|tar|t?xz|zip|z01|wim';
 
 // archive creation, see archiver man page before editing
 // archive.fileExt -> config
@@ -368,10 +370,19 @@ global \$pathToExternals;
 
 \$config['archive']['type']['zip'] = \$config['archive']['type']['7z'];
 \$config['archive']['type']['tar'] = \$config['archive']['type']['7z'];
-\$config['archive']['type']['gzip'] = \$config['archive']['type']['7z'];
-\$config['archive']['type']['tgz'] = \$config['archive']['type']['7z'];
-\$config['archive']['type']['tar.bz2'] = \$config['archive']['type']['7z'];
-\$config['archive']['type']['bzip2'] = \$config['archive']['type']['7z'];
+\$config['archive']['type']['tar']['has_password'] = false;
+\$config['archive']['type']['bz2'] = \$config['archive']['type']['tar'];
+\$config['archive']['type']['gz'] = \$config['archive']['type']['tar'];
+\$config['archive']['type']['tar.7z'] = \$config['archive']['type']['tar'];
+\$config['archive']['type']['tar.bz2'] = \$config['archive']['type']['tar'];
+\$config['archive']['type']['tar.gz'] = \$config['archive']['type']['tar'];
+\$config['archive']['type']['tar.xz'] = \$config['archive']['type']['tar'];
+
+// multiple passes for archiving and compression
+\$config['archive']['type']['tar.gz']['multipass'] = ['tar', 'gzip'];
+\$config['archive']['type']['tar.bz2']['multipass'] = ['tar', 'bzip2'];
+\$config['archive']['type']['tar.7z']['multipass'] = ['tar', '7z'];
+\$config['archive']['type']['tar.xz']['multipass'] = ['tar', 'xz'];
 EOL
 chown nobody.nogroup "/var/www/rutorrent/plugins/filemanager/conf.php"
 
@@ -434,13 +445,14 @@ ln -sf ${CONFIG_PATH}/geoip/GeoLite2-City.mmdb /var/www/rutorrent/plugins/geoip2
 ln -sf ${CONFIG_PATH}/geoip/GeoLite2-Country.mmdb /var/www/rutorrent/plugins/geoip2/database/GeoLite2-Country.mmdb
 
 # Perms
-echo -e "  ${norm}[${green}+${norm}] Fixing perms..."
+echo "  ${norm}[${green}+${norm}] Fixing perms..."
 chown rtorrent. \
   ${CONFIG_PATH} \
   ${CONFIG_PATH}/rtorrent \
   ${CONFIG_PATH}/rutorrent \
   ${DOWNLOAD_PATH} \
-  "${RU_LOG_FILE}"
+  ${TOPDIR_PATH} \
+  ${RU_LOG_FILE}
 
 chown -R rtorrent. \
   /passwd \
@@ -466,7 +478,7 @@ chmod 644 \
   /passwd/*.htpasswd \
   /etc/rtorrent/.rtlocal.rc
 
-echo "  ${norm}[${green}+${norm}] Settings services...\n"
+echo -e "  ${norm}[${green}+${norm}] Settings services...\n"
 mkdir -p /etc/services.d/nginx
 cat > /etc/services.d/nginx/run <<EOL
 #!/usr/bin/execlineb -P

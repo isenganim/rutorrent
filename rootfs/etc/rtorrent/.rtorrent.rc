@@ -19,14 +19,17 @@ throttle.global_up.max_rate.set_kb = 0
 dht.mode.set = auto
 
 # Enable peer exchange (for torrents not marked private)
-protocol.pex.set = yes
+protocol.pex.set = no
+
+# Default directory to save the downloaded torrents
+#directory.default.set = 
 
 # Check hash for finished torrents. Might be usefull until the bug is
 # fixed that causes lack of diskspace not to be properly reported
 pieces.hash.on_completion.set = no
 
 # Set whether the client should try to connect to UDP trackers
-#trackers.use_udp.set = yes
+trackers.use_udp.set = yes
 
 # Set the max amount of memory address space used to mapping file chunks. This refers to memory mapping, not
 # physical memory allocation. Default: 1GB (max_memory_usage)

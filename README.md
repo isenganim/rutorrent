@@ -30,12 +30,12 @@ ___
 * `XMLRPC` through nginx over SCGI socket (basic auth optional)
 * `WebDAV` on completed downloads (basic auth optional)
 * Ability to add a custom ruTorrent `plugin` / `theme`
-* Allow specific configuration for `downloads` folder
+* Allow specific configuration for `data` folder
 * Allow specific configuration for `config` folder
 
 ## Radarr / Sonarr Users
 
-To have the linux hardlink functional, it is possible to mount the media volume directly in `/data` to have a structure like  :
+It is recommended to use the same `data` volume for `ruTorrent` and `Radarr`/`Sonarr`, in order to have a structure similar to this :
 
 ```shell
 data
@@ -62,8 +62,8 @@ data
 Docker compose is the recommended way to run this image. Edit the compose file with your preferences and run the following command:
 
 ```shell
-mkdir $(pwd)/{config,downloads,passwd}
-chown ${PUID}:${PGID} $(pwd)/{config,downloads,passwd}
+mkdir $(pwd)/{config,data,passwd}
+chown ${PUID}:${PGID} $(pwd)/{config,data,passwd}
 docker-compose up -d
 docker-compose logs -f
 ```
@@ -82,8 +82,8 @@ docker-compose up -d
 You can also use the following minimal command:
 
 ```shell
-mkdir $(pwd)/{config,downloads,passwd}
-chown ${PUID}:${PGID} $(pwd)/{config,downloads,passwd}
+mkdir $(pwd)/{config,data,passwd}
+chown ${PUID}:${PGID} $(pwd)/{config,data,passwd}
 docker run -d --name rutorrent \
   --ulimit nproc=65535 \
   --ulimit nofile=32000:40000 \
@@ -93,7 +93,7 @@ docker run -d --name rutorrent \
   -p 9000:9000 \
   -p 50000:50000 \
   -v $(pwd)/config:/config \
-  -v $(pwd)/downloads:/data \
+  -v $(pwd)/data:/data \
   -v $(pwd)/passwd:/passwd \
   k44sh/rutorrent:latest && \
   docker logs -f rutorrent
@@ -107,7 +107,8 @@ docker run -d --name rutorrent \
 * `PUID`: rTorrent user id (default `1000`)
 * `PGID`: rTorrent group id (default `1000`)
 * `CONFIG_PATH`: ruTorrent config path (default `/config`)
-* `DOWNLOAD_PATH`: Downloads path (default `/data`)
+* `TOPDIR_PATH`: ruTorrent top directory (default `/data`)
+* `DOWNLOAD_PATH`: Downloads path (default `/data/downloads`)
 * `WAN_IP`: Public IP address reported to the tracker (default auto resolved with `dig +short myip.opendns.com @resolver1.opendns.com`)
 * `MEMORY_LIMIT`: PHP memory limit (default `512M`)
 * `UPLOAD_MAX_SIZE`: Upload max size (default `16M`)
