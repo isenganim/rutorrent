@@ -7,6 +7,9 @@ on:
       - dev
     tags:
       - 'v*'
+    paths-ignore:
+      - '**.md'
+      - '**.yml'
 
 env:
   DOCKERHUB_SLUG: k44sh/rutorrent
