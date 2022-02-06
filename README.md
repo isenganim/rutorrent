@@ -1,11 +1,10 @@
 <p align="center"><a href="https://github.com/k44sh/rutorrent" target="_blank"><img width="1699" src="https://raw.githubusercontent.com/k44sh/rutorrent/main/.ruTorrent.png"></a></p>
 
 <p align="center">
-  <a href="https://hub.docker.com/r/k44sh/rutorrent/tags?page=1&ordering=last_updated"><img src="https://img.shields.io:/docker/v/k44sh/rutorrent/latest?logo=gitlab" alt="Latest Version"></a>
-  <a href="https://github.com/k44sh/rutorrent/actions?workflow=build"><img src="https://img.shields.io:/github/workflow/status/k44sh/rutorrent/build?logo=github" alt="Build Status"></a>
+  <a href="https://hub.docker.com/r/k44sh/rutorrent/tags?page=1&ordering=last_updated"><img src="https://img.shields.io:/docker/v/k44sh/rutorrent/latest?logo=docker" alt="Latest Version"></a>
   <a href="https://hub.docker.com/r/k44sh/rutorrent/"><img src="https://img.shields.io:/docker/image-size/k44sh/rutorrent?logo=docker" alt="Docker Size"></a>
-  <a href="https://hub.docker.com/r/k44sh/rutorrent/"><img src="https://img.shields.io:/docker/stars/k44sh/rutorrent?logo=docker" alt="Docker Stars"></a>
   <a href="https://hub.docker.com/r/k44sh/rutorrent/"><img src="https://img.shields.io:/docker/pulls/k44sh/rutorrent?logo=docker" alt="Docker Pulls"></a>
+  <a href="https://github.com/k44sh/rutorrent/actions?workflow=build"><img src="https://img.shields.io:/github/workflow/status/k44sh/rutorrent/build?logo=github" alt="Build Status"></a>
 </p>
 
 ## About
@@ -20,10 +19,10 @@ ___
 * Latest [NGINX](https://nginx.org/download) release compiled from source with [php8](https://www.php.net/releases/8.0/en.php)
 * Latest [rTorrent](https://github.com/rakshasa/rtorrent) / [libTorrent](https://github.com/rakshasa/libtorrent) release compiled from source
 * Latest [ruTorrent](https://github.com/Novik/ruTorrent) release
-* ruTorrent [GeoIP2 plugin](https://github.com/Micdu70/geoip2-rutorrent)
-* ruTorrent [Filemanager plugin](https://github.com/nelu/rutorrent-filemanager)
-* ruTorrent [Ratiocolors plugin](https://github.com/themightykitten/ruTorrent-MaterialDesign)
-* ruTorrent [MaterialDesigna theme](https://github.com/Gyran/rutorrent-ratiocolor)
+* ruTorrent [GeoIP2](https://github.com/Micdu70/geoip2-rutorrent) plugin
+* ruTorrent [Filemanager](https://github.com/nelu/rutorrent-filemanager) plugin
+* ruTorrent [Ratiocolors](https://github.com/themightykitten/ruTorrent-MaterialDesign) plugin
+* ruTorrent [MaterialDesign](https://github.com/Gyran/rutorrent-ratiocolor) theme
 * [Radarr](https://radarr.video)/[Sonarr](https://sonarr.tv) hardlinks compliance
 * [mktorrent](https://github.com/Rudde/mktorrent) installed for ruTorrent create plugin
 * `WAN IP` address automatically resolved for reporting to the tracker
