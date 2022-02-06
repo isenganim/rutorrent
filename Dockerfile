@@ -1,4 +1,4 @@
-ARG ALPINE_VERSION=3.15
+ARG ALPINE_VERSION=3.14.3
 ARG RTORRENT_VERSION=0.9.8
 ARG LIBTORRENT_VERSION=0.13.8
 ARG XMLRPC_VERSION=1.59.00
@@ -237,6 +237,7 @@ RUN apk --update --no-cache add \
     tar \
     tzdata \
     unzip \
+    unrar \
     util-linux \
     zip \
     zlib \
