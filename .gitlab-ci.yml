@@ -16,10 +16,11 @@ variables:
 
 workflow:
   rules:
-    - changes:
-      - "**.md"
-      - "**.yml"
-      when: never
+    - if:
+      changes:
+        - "**.md"
+        - "**.yml"
+      when: manual
 
 services:
   - name: docker:dind
