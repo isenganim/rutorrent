@@ -1,0 +1,152 @@
+image: docker:latest
+
+stages:
+  - Build
+  - Test
+  - Deploy
+
+variables:
+  BUILDX_VERSION: "v0.8.2"
+  BUILDX_ARCH: "linux-amd64"
+  DOCKER_DRIVER: overlay2
+  tag_latest: "latest"
+  tag_dev: "dev"
+  branch_dev: "dev"
+  http_proxy: ""
+  https_proxy: ""
+  no_proxy: ""
+
+#workflow:
+#  rules:
+#    - changes:
+#      - "**.md"
+#      - "**.yml"
+#      when: never
+
+services:
+  - name: docker:dind
+
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+
+Build Latest:
+  stage: Build
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:$tag_latest || true
+    - >
+      docker build
+      --pull
+      --build-arg http_proxy=$http_proxy
+      --build-arg https_proxy=$https_proxy
+      --build-arg no_proxy=$no_proxy
+      --cache-from $CI_REGISTRY_IMAGE:$tag_latest
+      --label "org.opencontainers.image.title=rTorrent and ruTorrent"
+      --label "org.opencontainers.image.url=$CI_PROJECT_URL"
+      --label "org.opencontainers.image.source=$CI_PROJECT_URL"
+      --label "org.opencontainers.image.documentation=$CI_PROJECT_URL"
+      --label "org.opencontainers.image.created=$CI_JOB_STARTED_AT"
+      --label "org.opencontainers.image.revision=$CI_COMMIT_SHA"
+      --label "org.opencontainers.image.version=$CI_COMMIT_TAG"
+      --label "org.opencontainers.image.description=rTorrent and ruTorrent Docker image based on Alpine Linux"
+      --label "org.opencontainers.image.licenses=MIT"
+      --label "org.opencontainers.image.vendor=k44sh"
+      --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+Build Dev:
+  stage: Build
+  rules:
+    - if: $CI_COMMIT_BRANCH == $branch_dev
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:$tag_dev || true
+    - >
+      docker build
+      --pull
+      --build-arg http_proxy=$http_proxy
+      --build-arg https_proxy=$https_proxy
+      --build-arg no_proxy=$no_proxy
+      --cache-from $CI_REGISTRY_IMAGE:$tag_dev
+      --label "org.opencontainers.image.title=rTorrent and ruTorrent"
+      --label "org.opencontainers.image.url=$CI_PROJECT_URL"
+      --label "org.opencontainers.image.source=$CI_PROJECT_URL"
+      --label "org.opencontainers.image.documentation=$CI_PROJECT_URL"
+      --label "org.opencontainers.image.created=$CI_JOB_STARTED_AT"
+      --label "org.opencontainers.image.revision=$CI_COMMIT_SHA"
+      --label "org.opencontainers.image.version=$tag_dev"
+      --label "org.opencontainers.image.description=rTorrent and ruTorrent Docker image based on Alpine Linux"
+      --label "org.opencontainers.image.licenses=MIT"
+      --label "org.opencontainers.image.vendor=k44sh"
+      --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+Test Latest:
+  variables:
+    GIT_STRATEGY: none
+  stage: Test
+  needs: ["Build Latest"]
+  services:
+    - name: docker:dind
+    - name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+      alias: test-latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - apk --update --no-cache add curl
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker image inspect $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - curl http://test-latest:8080/conf/config.php -v
+
+Push Latest:
+  variables:
+    GIT_STRATEGY: none
+  stage: Deploy
+  needs: ["Test Latest"]
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$tag_latest
+    - docker push $CI_REGISTRY_IMAGE:$tag_latest
+
+Push Tag:
+  variables:
+    GIT_STRATEGY: none
+  stage: Deploy
+  needs: ["Test Latest"]
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+
+Test Dev:
+  variables:
+    GIT_STRATEGY: none
+  stage: Test
+  needs: ["Build Dev"]
+  services:
+    - name: docker:dind
+    - name: $CI_REGISTRY_IMAGE:CI_COMMIT_SHA
+      alias: test-dev
+  rules:
+    - if: $CI_COMMIT_BRANCH == $branch_dev
+  script:
+    - apk --update --no-cache add curl
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker image inspect $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - curl http://test-dev:8080/conf/config.php -v
+
+Push Dev:
+  variables:
+    GIT_STRATEGY: none
+  stage: Deploy
+  needs: ["Test Dev"]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $branch_dev
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$tag_dev
+    - docker push $CI_REGISTRY_IMAGE:$tag_dev
