@@ -6,8 +6,6 @@ stages:
   - Deploy
 
 variables:
-  BUILDX_VERSION: "v0.8.2"
-  BUILDX_ARCH: "linux-amd64"
   DOCKER_DRIVER: overlay2
   tag_latest: "latest"
   tag_dev: "dev"
@@ -16,12 +14,12 @@ variables:
   https_proxy: ""
   no_proxy: ""
 
-#workflow:
-#  rules:
-#    - changes:
-#      - "**.md"
-#      - "**.yml"
-#      when: never
+workflow:
+  rules:
+    - changes:
+      - "**.md"
+      - "**.yml"
+      when: never
 
 services:
   - name: docker:dind
