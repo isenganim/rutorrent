@@ -127,7 +127,7 @@ Test Dev:
   needs: ["Build Dev"]
   services:
     - name: docker:dind
-    - name: $CI_REGISTRY_IMAGE:CI_COMMIT_SHA
+    - name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
       alias: test-dev
   rules:
     - if: $CI_COMMIT_BRANCH == $branch_dev
