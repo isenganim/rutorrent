@@ -34,7 +34,7 @@ ARG MKTORRENT_VERSION
 WORKDIR /dist/mktorrent
 RUN git clone --branch v${MKTORRENT_VERSION} "https://github.com/esmil/mktorrent.git" .
 
-ARG RUTORRENT_REVISION
+#ARG RUTORRENT_REVISION
 WORKDIR /dist/rutorrent
 RUN git clone "https://github.com/Novik/ruTorrent.git" . \
   #&& git reset --hard $RUTORRENT_REVISION \
