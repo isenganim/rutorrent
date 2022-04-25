@@ -429,7 +429,7 @@ fi
 if [ ! -f ${CONFIG_PATH}/rutorrent/share/settings/unpack.dat ]; then
   echo "  ${norm}[${green}+${norm}] Setting ruTorrent ${green}Unpack${norm} plugin..."
   echo 'O:7:"rUnpack":6:{s:4:"hash";s:10:"unpack.dat";s:7:"enabled";s:1:"1";s:6:"filter";s:4:"/.*/";s:4:"path";s:0:"";s:8:"addLabel";s:1:"0";s:7:"addName";s:1:"0";}' \
-  > ${CONFIG_PATH}/rutorrent/share/settings/theme.dat
+  > ${CONFIG_PATH}/rutorrent/share/settings/unpack.dat
 fi
 
 # Check ruTorrent themes
