@@ -18,11 +18,12 @@ ___
 * Multi-platform image
 * Latest [NGINX](https://nginx.org/download) release compiled from source with [php8](https://www.php.net/releases/8.0/en.php)
 * Latest [rTorrent](https://github.com/rakshasa/rtorrent) / [libTorrent](https://github.com/rakshasa/libtorrent) release compiled from source
-* Latest [ruTorrent](https://github.com/Novik/ruTorrent) release
+* Latest [ruTorrent](https://github.com/Novik/ruTorrent) release (`v4.0-beta.2.1`)
 * ruTorrent [GeoIP2](https://github.com/Micdu70/geoip2-rutorrent) plugin
 * ruTorrent [Filemanager](https://github.com/nelu/rutorrent-filemanager) plugin
-* ruTorrent [Ratiocolors](https://github.com/themightykitten/ruTorrent-MaterialDesign) plugin
-* ruTorrent [MaterialDesign](https://github.com/Gyran/rutorrent-ratiocolor) theme
+* ruTorrent [Ratiocolors](https://github.com/Gyran/rutorrent-ratiocolor) plugin
+* ruTorrent [MaterialDesign](https://github.com/themightykitten/ruTorrent-MaterialDesign) theme
+* ruTorrent [QuickBox](https://github.com/TrimmingFool/club-QuickBox) theme
 * [Radarr](https://radarr.video)/[Sonarr](https://sonarr.tv) hardlinks compliance
 * [mktorrent](https://github.com/Rudde/mktorrent) installed for ruTorrent create plugin
 * `WAN IP` address automatically resolved for reporting to the tracker
