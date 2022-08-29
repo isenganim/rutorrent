@@ -1,11 +1,11 @@
-ARG ALPINE_VERSION=3.14.3
+ARG ALPINE_VERSION=3.16.2
 ARG RTORRENT_VERSION=0.9.8
 ARG LIBTORRENT_VERSION=0.13.8
 ARG XMLRPC_VERSION=01.59.00
 ARG RUTORRENT_VERSION=3.10
-ARG RUTORRENT_REVISION=d1fe916a8857463aa457dd97e5ed4867a3be42b8
+ARG RUTORRENT_REVISION=d1024b0c946402d16ff078974393121bd83b118d
 ARG MKTORRENT_VERSION=1.1
-ARG NGINX_VERSION=1.21.6
+ARG NGINX_VERSION=1.23.1
 ARG NGINX_DAV_VERSION=3.0.0
 ARG OVERLAY_VERSION=2.2.0.3
 ARG NGINX_UID=102
@@ -46,8 +46,11 @@ RUN git clone "https://github.com/Micdu70/geoip2-rutorrent" . && rm -rf .git*
 WORKDIR /dist/rutorrent-filemanager
 RUN git clone "https://github.com/nelu/rutorrent-filemanager.git" . && rm -rf .git*
 
-WORKDIR /dist/rutorrent-theme
-RUN git clone "https://github.com/phlooo/ruTorrent-MaterialDesign.git" . && rm -rf .git*
+WORKDIR /dist/rutorrent-theme-material
+RUN git clone "https://github.com/TrimmingFool/ruTorrent-MaterialDesign.git" . && rm -rf .git*
+
+WORKDIR /dist/rutorrent-theme-quick
+RUN git clone "https://github.com/TrimmingFool/club-QuickBox.git" . && rm -rf .git*
 
 WORKDIR /dist/rutorrent-ratio
 RUN git clone "https://github.com/Gyran/rutorrent-ratiocolor.git" . && rm -rf .git*
@@ -177,7 +180,8 @@ COPY --from=builder /dist /
 COPY --from=download /dist/s6 /
 COPY --from=download /dist/mmdb /var/mmdb
 COPY --from=download --chown=nobody:nogroup /dist/rutorrent /var/www/rutorrent
-COPY --from=download --chown=nobody:nogroup /dist/rutorrent-theme /var/www/rutorrent/plugins/theme/themes/MaterialDesign
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent-theme-material /var/www/rutorrent/plugins/theme/themes/MaterialDesign
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent-theme-quick /var/www/rutorrent/plugins/theme/themes/QuickBox
 COPY --from=download --chown=nobody:nogroup /dist/rutorrent-ratio /var/www/rutorrent/plugins/ratiocolor
 COPY --from=download --chown=nobody:nogroup /dist/rutorrent-filemanager /var/www/rutorrent/plugins/filemanager
 COPY --from=download --chown=nobody:nogroup /dist/rutorrent-geoip2 /var/www/rutorrent/plugins/geoip2
@@ -188,6 +192,7 @@ ENV TZ="UTC" \
 
 ARG NGINX_UID
 ARG NGINX_GID
+RUN echo "@314 http://dl-cdn.alpinelinux.org/alpine/v3.14/main" >> /etc/apk/repositories
 RUN apk --update --no-cache add \
     apache2-utils \
     bash \
@@ -237,7 +242,7 @@ RUN apk --update --no-cache add \
     tar \
     tzdata \
     unzip \
-    unrar \
+    unrar@314 \
     util-linux \
     zip \
     zlib \

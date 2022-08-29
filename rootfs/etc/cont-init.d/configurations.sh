@@ -228,7 +228,7 @@ echo "  ${norm}[${green}+${norm}] Checking rTorrent configuration..."
 if [ ! -f ${CONFIG_PATH}/rtorrent/.rtorrent.rc ]; then
   echo "    ${norm}[${blue}-${norm}] Creating default configuration..."
   cp /etc/rtorrent/.rtorrent.rc ${CONFIG_PATH}/rtorrent/.rtorrent.rc
-  chown rtorrent. ${CONFIG_PATH}/rtorrent/.rtorrent.rc
+  chown rtorrent: ${CONFIG_PATH}/rtorrent/.rtorrent.rc
 fi
 
 # ruTorrent config
@@ -301,7 +301,7 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 
 \$locale = '${RU_LOCALE}';
 EOL
-chown nobody.nogroup "/var/www/rutorrent/conf/config.php"
+chown nobody:nogroup "/var/www/rutorrent/conf/config.php"
 
 # Symlinking ruTorrent config
 ln -sf ${CONFIG_PATH}/rutorrent/conf/users /var/www/rutorrent/conf/users
@@ -310,13 +310,13 @@ if [ ! -f ${CONFIG_PATH}/rutorrent/conf/access.ini ]; then
   mv /var/www/rutorrent/conf/access.ini ${CONFIG_PATH}/rutorrent/conf/access.ini
   ln -sf ${CONFIG_PATH}/rutorrent/conf/access.ini /var/www/rutorrent/conf/access.ini
 fi
-chown rtorrent. ${CONFIG_PATH}/rutorrent/conf/access.ini
+chown rtorrent: ${CONFIG_PATH}/rutorrent/conf/access.ini
 if [ ! -f ${CONFIG_PATH}/rutorrent/conf/plugins.ini ]; then
   echo "  ${norm}[${green}+${norm}] Symlinking ruTorrent plugins.ini file..."
   mv /var/www/rutorrent/conf/plugins.ini ${CONFIG_PATH}/rutorrent/conf/plugins.ini
   ln -sf ${CONFIG_PATH}/rutorrent/conf/plugins.ini /var/www/rutorrent/conf/plugins.ini
 fi
-chown rtorrent. ${CONFIG_PATH}/rutorrent/conf/plugins.ini
+chown rtorrent: ${CONFIG_PATH}/rutorrent/conf/plugins.ini
 
 # Remove ruTorrent core plugins
 if [ -n "$RU_REMOVE_CORE_PLUGINS" ]; then
@@ -337,7 +337,7 @@ cat > /var/www/rutorrent/plugins/create/conf.php <<EOL
 \$pathToCreatetorrent = '/usr/local/bin/mktorrent';
 \$recentTrackersMaxCount = 15;
 EOL
-chown nobody.nogroup "/var/www/rutorrent/plugins/create/conf.php"
+chown nobody:nogroup "/var/www/rutorrent/plugins/create/conf.php"
 
 if [ -f /var/www/rutorrent/plugins/ratiocolor/init.js ]; then
   echo "  ${norm}[${green}+${norm}] Setting ruTorrent ${green}ratiocolor${norm} plugin..."
@@ -384,7 +384,7 @@ global \$pathToExternals;
 \$config['archive']['type']['tar.7z']['multipass'] = ['tar', '7z'];
 \$config['archive']['type']['tar.xz']['multipass'] = ['tar', 'xz'];
 EOL
-chown nobody.nogroup "/var/www/rutorrent/plugins/filemanager/conf.php"
+chown nobody:nogroup "/var/www/rutorrent/plugins/filemanager/conf.php"
 
 # Check ruTorrent plugins
 echo "  ${norm}[${green}+${norm}] Checking ruTorrent custom plugins..."
@@ -397,7 +397,7 @@ for plugin in ${plugins}; do
   echo "    ${norm}[${blue}+${norm}] Copying custom plugin ${blue}${plugin}${norm}..."
   rm -rf "/var/www/rutorrent/plugins/${plugin}"
   cp -Rf "${CONFIG_PATH}/rutorrent/plugins/${plugin}" "/var/www/rutorrent/plugins/${plugin}"
-  chown -R nobody.nogroup "/var/www/rutorrent/plugins/${plugin}"
+  chown -R nobody:nogroup "/var/www/rutorrent/plugins/${plugin}"
 done
 
 # Check ruTorrent plugins config
@@ -418,7 +418,7 @@ for pluginConfFile in ${CONFIG_PATH}/rutorrent/plugins-conf/*.php; do
   fi
   echo "    ${norm}[${blue}-${norm}] Copying ${blue}${pluginName}${norm} plugin config..."
   cp -f "${pluginConfFile}" "/var/www/rutorrent/plugins/${pluginName}/conf.php"
-  chown nobody.nogroup "/var/www/rutorrent/plugins/${pluginName}/conf.php"
+  chown nobody:nogroup "/var/www/rutorrent/plugins/${pluginName}/conf.php"
 done
 
 if [ ! -f ${CONFIG_PATH}/rutorrent/share/settings/theme.dat ]; then
@@ -439,7 +439,7 @@ for theme in ${themes}; do
   echo "    ${norm}[${blue}-${norm}] Copying custom theme ${blue}${theme}${norm}..."
   rm -rf "/var/www/rutorrent/plugins/theme/themes/${theme}"
   cp -Rf "${CONFIG_PATH}/rutorrent/themes/${theme}" "/var/www/rutorrent/plugins/theme/themes/${theme}"
-  chown -R nobody.nogroup "/var/www/rutorrent/plugins/theme/themes/${theme}"
+  chown -R nobody:nogroup "/var/www/rutorrent/plugins/theme/themes/${theme}"
 done
 
 # GeoIP2 databases
@@ -452,7 +452,7 @@ ln -sf ${CONFIG_PATH}/geoip/GeoLite2-Country.mmdb /var/www/rutorrent/plugins/geo
 
 # Perms
 echo "  ${norm}[${green}+${norm}] Fixing perms..."
-chown rtorrent. \
+chown rtorrent: \
   ${CONFIG_PATH} \
   ${CONFIG_PATH}/rtorrent \
   ${CONFIG_PATH}/rutorrent \
@@ -460,7 +460,7 @@ chown rtorrent. \
   ${TOPDIR_PATH} \
   ${RU_LOG_FILE}
 
-chown -R rtorrent. \
+chown -R rtorrent: \
   /passwd \
   /etc/rtorrent \
   /var/cache/nginx \
