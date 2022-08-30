@@ -24,19 +24,19 @@ RUN svn checkout "http://svn.code.sf.net/p/xmlrpc-c/code/release_number/${XMLRPC
 
 ARG LIBTORRENT_VERSION
 WORKDIR /dist/libtorrent
-RUN git clone --branch v${LIBTORRENT_VERSION} "https://github.com/rakshasa/libtorrent.git" .
+RUN git clone --branch v${LIBTORRENT_VERSION} "https://github.com/rakshasa/libtorrent" .
 
 ARG RTORRENT_VERSION
 WORKDIR /dist/rtorrent
-RUN git clone --branch v${RTORRENT_VERSION} "https://github.com/rakshasa/rtorrent.git" .
+RUN git clone --branch v${RTORRENT_VERSION} "https://github.com/rakshasa/rtorrent" .
 
 ARG MKTORRENT_VERSION
 WORKDIR /dist/mktorrent
-RUN git clone --branch v${MKTORRENT_VERSION} "https://github.com/esmil/mktorrent.git" .
+RUN git clone --branch v${MKTORRENT_VERSION} "https://github.com/esmil/mktorrent" .
 
 ARG RUTORRENT_REVISION
 WORKDIR /dist/rutorrent
-RUN git clone "https://github.com/Novik/ruTorrent.git" . \
+RUN git clone "https://github.com/Novik/ruTorrent" . \
   && git reset --hard $RUTORRENT_REVISION \
   && rm -rf .git* conf/users plugins/geoip plugins/_cloudflare share
 
@@ -44,16 +44,16 @@ WORKDIR /dist/rutorrent-geoip2
 RUN git clone "https://github.com/Micdu70/geoip2-rutorrent" . && rm -rf .git*
 
 WORKDIR /dist/rutorrent-filemanager
-RUN git clone "https://github.com/nelu/rutorrent-filemanager.git" . && rm -rf .git*
+RUN git clone "https://github.com/nelu/rutorrent-filemanager" . && rm -rf .git*
 
 WORKDIR /dist/rutorrent-theme-material
-RUN git clone "https://github.com/TrimmingFool/ruTorrent-MaterialDesign.git" . && rm -rf .git*
+RUN git clone "https://github.com/TrimmingFool/ruTorrent-MaterialDesign" . && rm -rf .git*
 
 WORKDIR /dist/rutorrent-theme-quick
-RUN git clone "https://github.com/TrimmingFool/club-QuickBox.git" . && rm -rf .git*
+RUN git clone "https://github.com/TrimmingFool/club-QuickBox" . && rm -rf .git*
 
 WORKDIR /dist/rutorrent-ratio
-RUN git clone "https://github.com/Gyran/rutorrent-ratiocolor.git" . && rm -rf .git*
+RUN git clone "https://github.com/Gyran/rutorrent-ratiocolor" . && rm -rf .git*
 
 WORKDIR /dist/geoip2-rutorrent
 RUN git clone "https://github.com/Micdu70/geoip2-rutorrent" . && rm -rf .git*
@@ -66,7 +66,7 @@ ARG NGINX_VERSION
 ARG NGINX_DAV_VERSION
 WORKDIR /dist/nginx
 RUN curl -sSL "https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" | tar xz --strip 1
-RUN git clone --branch v${NGINX_DAV_VERSION} "https://github.com/arut/nginx-dav-ext-module.git" nginx-dav-ext
+RUN git clone --branch v${NGINX_DAV_VERSION} "https://github.com/arut/nginx-dav-ext-module" nginx-dav-ext
 
 ARG ALPINE_VERSION
 FROM alpine:${ALPINE_VERSION} AS compile
