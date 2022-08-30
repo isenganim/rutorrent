@@ -24,7 +24,7 @@ target "image-local" {
 target "image-prod" {
   inherits = ["image"]
   platforms = [
-    "linux/amd64"
+    "linux/amd64",
     "linux/arm64",
     "linux/arm/v7"
   ]
