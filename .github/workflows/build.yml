@@ -86,21 +86,9 @@ jobs:
           set: |
             *.cache-from=type=local,src=/tmp/.docker-cache
             *.cache-to=type=local,dest=/tmp/.docker-cache-new,mode=max
-        name: Build ARM
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        uses: docker/bake-action@v2
-        with:
-          files: |
-            ./docker-bake.hcl
-            ${{ steps.meta.outputs.bake-file }}
-          targets: image-arm
-          push: true
-          set: |
-            *.cache-from=type=local,src=/tmp/.docker-cache
-            *.cache-to=type=local,dest=/tmp/.docker-cache-new,mode=max
       -
         name: Build Dev
-        if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/dev' }}
         uses: docker/bake-action@v2
         with:
           files: |
@@ -108,6 +96,19 @@ jobs:
             ${{ steps.meta.outputs.bake-file }}
           targets: image-dev
           push: ${{ github.ref == 'refs/heads/dev' }}
+          set: |
+            *.cache-from=type=local,src=/tmp/.docker-cache
+            *.cache-to=type=local,dest=/tmp/.docker-cache-new,mode=max
+      -
+        name: Build Dev (ARM)
+        if:  ${{ github.ref == 'refs/heads/dev' }}
+        uses: docker/bake-action@v2
+        with:
+          files: |
+            ./docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
+          targets: image-arm
+          push: false
           set: |
             *.cache-from=type=local,src=/tmp/.docker-cache
             *.cache-to=type=local,dest=/tmp/.docker-cache-new,mode=max

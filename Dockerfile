@@ -34,10 +34,10 @@ ARG MKTORRENT_VERSION
 WORKDIR /dist/mktorrent
 RUN git clone --branch v${MKTORRENT_VERSION} "https://github.com/esmil/mktorrent.git" .
 
-#ARG RUTORRENT_REVISION
+ARG RUTORRENT_REVISION
 WORKDIR /dist/rutorrent
 RUN git clone "https://github.com/Novik/ruTorrent.git" . \
-  #&& git reset --hard $RUTORRENT_REVISION \
+  && git reset --hard $RUTORRENT_REVISION \
   && rm -rf .git* conf/users plugins/geoip plugins/_cloudflare share
 
 WORKDIR /dist/rutorrent-geoip2
@@ -69,7 +69,7 @@ RUN curl -sSL "https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" | tar x
 RUN git clone --branch v${NGINX_DAV_VERSION} "https://github.com/arut/nginx-dav-ext-module.git" nginx-dav-ext
 
 ARG ALPINE_VERSION
-FROM alpine:${ALPINE_VERSION} AS builder
+FROM alpine:${ALPINE_VERSION} AS compile
 
 RUN apk --update --no-cache add \
     autoconf \
@@ -174,9 +174,9 @@ RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
 RUN tree ${DIST_PATH}
 
 ARG ALPINE_VERSION
-FROM alpine:${ALPINE_VERSION}
+FROM alpine:${ALPINE_VERSION} as builder
 
-COPY --from=builder /dist /
+COPY --from=compile /dist /
 COPY --from=download /dist/s6 /
 COPY --from=download /dist/mmdb /var/mmdb
 COPY --from=download --chown=nobody:nogroup /dist/rutorrent /var/www/rutorrent

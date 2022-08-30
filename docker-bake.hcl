@@ -25,15 +25,8 @@ target "image-prod" {
   inherits = ["image"]
   platforms = [
     "linux/amd64"
-  ]
-}
-
-target "image-arm" {
-  inherits = ["image"]
-  platforms = [
-    "linux/arm/v6",
-    "linux/arm/v7",
-    "linux/arm64"
+    "linux/arm64",
+    "linux/arm/v7"
   ]
 }
 
@@ -41,5 +34,13 @@ target "image-dev" {
   inherits = ["image"]
   platforms = [
     "linux/amd64",
+  ]
+}
+
+target "image-dev-arm" {
+  inherits = ["image"]
+  platforms = [
+    "linux/arm64",
+    "linux/arm/v7"
   ]
 }
