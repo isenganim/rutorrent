@@ -21,10 +21,16 @@ target "image-local" {
   output = ["type=docker"]
 }
 
-target "image-all" {
+target "image-prod" {
   inherits = ["image"]
   platforms = [
-    "linux/amd64",
+    "linux/amd64"
+  ]
+}
+
+target "image-arm" {
+  inherits = ["image"]
+  platforms = [
     "linux/arm/v6",
     "linux/arm/v7",
     "linux/arm64"

@@ -10,6 +10,8 @@ on:
     paths-ignore:
       - '**.md'
       - '**.yml'
+      - "**.hcl"
+      - "**.png"
 
 env:
   DOCKERHUB_SLUG: k44sh/rutorrent
@@ -79,7 +81,19 @@ jobs:
           files: |
             ./docker-bake.hcl
             ${{ steps.meta.outputs.bake-file }}
-          targets: image-all
+          targets: image-prod
+          push: true
+          set: |
+            *.cache-from=type=local,src=/tmp/.docker-cache
+            *.cache-to=type=local,dest=/tmp/.docker-cache-new,mode=max
+        name: Build ARM
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        uses: docker/bake-action@v2
+        with:
+          files: |
+            ./docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
+          targets: image-arm
           push: true
           set: |
             *.cache-from=type=local,src=/tmp/.docker-cache
