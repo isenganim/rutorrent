@@ -7,11 +7,6 @@ on:
       - dev
     tags:
       - 'v*'
-    paths-ignore:
-      - '**.md'
-      - '**.yml'
-      - "**.hcl"
-      - "**.png"
 
 env:
   DOCKERHUB_SLUG: k44sh/rutorrent
