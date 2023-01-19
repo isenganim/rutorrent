@@ -93,18 +93,18 @@ echo "  ${norm}[${green}+${norm}] Setting PHP-FPM configuration..."
 sed -e "s/@MEMORY_LIMIT@/$MEMORY_LIMIT/g" \
     -e "s/@UPLOAD_MAX_SIZE@/$UPLOAD_MAX_SIZE/g" \
     -e "s/@CLEAR_ENV@/$CLEAR_ENV/g" \
-    -i /etc/php8/php-fpm.d/www.conf
+    -i /etc/php81/php-fpm.d/www.conf
 
 echo "  ${norm}[${green}+${norm}] Setting PHP INI configuration..."
 sed -e "s|memory_limit.*|memory_limit = ${MEMORY_LIMIT}|g" \
     -e "s|;date\.timezone.*|date\.timezone = ${TZ}|g" \
     -e "s|max_file_uploads.*|max_file_uploads = ${MAX_FILE_UPLOADS}|g"  \
-    -i /etc/php8/php.ini
+    -i /etc/php81/php.ini
 
 # OpCache
 echo "  ${norm}[${green}+${norm}] Setting OpCache configuration..."
 sed -e "s/@OPCACHE_MEM_SIZE@/$OPCACHE_MEM_SIZE/g" \
-    -i /etc/php8/conf.d/opcache.ini
+    -i /etc/php81/conf.d/opcache.ini
 
 # Nginx
 echo "  ${norm}[${green}+${norm}] Setting Nginx configuration..."
@@ -237,18 +237,18 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 <?php
 
 // For snoopy client
-@define('HTTP_USER_AGENT', '${RU_HTTP_USER_AGENT}', true);
-@define('HTTP_TIME_OUT', ${RU_HTTP_TIME_OUT}, true);
-@define('HTTP_USE_GZIP', ${RU_HTTP_USE_GZIP}, true);
+\$httpUserAgent = '${RU_HTTP_USER_AGENT}';
+\$httpTimeOut = ${RU_HTTP_TIME_OUT};
+\$httpUseGzip = ${RU_HTTP_USE_GZIP};
 
-@define('RPC_TIME_OUT', ${RU_RPC_TIME_OUT}, true);
-
-@define('LOG_RPC_CALLS', ${RU_LOG_RPC_CALLS}, true);
-@define('LOG_RPC_FAULTS', ${RU_LOG_RPC_FAULTS}, true);
+// For xmlrpc actions
+\$rpcTimeOut = ${RU_RPC_TIME_OUT};
+\$rpcLogCalls = ${RU_LOG_RPC_CALLS};
+\$rpcLogFaults = ${RU_LOG_RPC_FAULTS};
 
 // For php
-@define('PHP_USE_GZIP', ${RU_PHP_USE_GZIP}, true);
-@define('PHP_GZIP_LEVEL', ${RU_PHP_GZIP_LEVEL}, true);
+\$phpUseGzip = ${RU_PHP_USE_GZIP};
+\$phpGzipLevel = ${RU_PHP_GZIP_LEVEL};
 
 // Rand for schedulers start, +0..X seconds
 \$schedule_rand = ${RU_SCHEDULE_RAND};
@@ -271,14 +271,15 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 \$scgi_port = 0;
 \$scgi_host = "unix:///var/run/rtorrent/scgi.socket";
 \$XMLRPCMountPoint = "/RPC2"; // DO NOT DELETE THIS LINE!!! DO NOT COMMENT THIS LINE!!!
+\$throttleMaxSpeed = 327625*1024; // DO NOT EDIT THIS LINE!!! DO NOT COMMENT THIS LINE!!!
 
 \$pathToExternals = array(
-    "php"    => '/usr/bin/php8',
-    "curl"   => '/usr/bin/curl',
-    "gzip"   => '/usr/bin/gzip',
-    "7z"     => '/usr/bin/7z',
-    "id"     => '/usr/bin/id',
-    "stat"   => '/bin/stat',
+    "php"    => '',
+    "curl"   => '',
+    "gzip"   => '',
+    "7z"     => '',
+    "id"     => '',
+    "stat"   => '',
     "python" => '$(which python3)',
 );
 
@@ -300,6 +301,9 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 \$canUseXSendFile = false;
 
 \$locale = '${RU_LOCALE}';
+
+\$enableCSRFCheck = false; // If true then Origin and Referer will be checked
+\$enabledOrigins = array(); // List of enabled domains for CSRF check (only hostnames, without protocols, port etc.). If empty, then will retrieve domain from HTTP_HOST / HTTP_X_FORWARDED_HOST
 EOL
 chown nobody:nogroup "/var/www/rutorrent/conf/config.php"
 
@@ -365,7 +369,7 @@ global \$pathToExternals;
 \$config['archive']['type'] = [
     '7z' => [
         'bin' =>'7zip',
-        'compression' => [0, 5, 9],
+        'compression' => [1, 5, 9],
     ]];
 
 \$config['archive']['type']['zip'] = \$config['archive']['type']['7z'];
@@ -388,9 +392,9 @@ chown nobody:nogroup "/var/www/rutorrent/plugins/filemanager/conf.php"
 
 # Check ruTorrent plugins
 echo "  ${norm}[${green}+${norm}] Checking ruTorrent custom plugins..."
-plugins=$(ls -l ${CONFIG_PATH}/rutorrent/plugins | egrep '^d' | awk '{print $9}')
+plugins=$(ls -l ${CONFIG_PATH}/rutorrent/plugins | grep -E '^d' | awk '{print $9}')
 for plugin in ${plugins}; do
-  if [ "${plugin}" == "theme" ]; then
+  if [ "${plugin}" = "theme" ]; then
     echo "    ${norm}[${red}-${norm}] ${red}WARNING: Plugin theme cannot be overriden${norm}"
     continue
   fi
@@ -434,7 +438,7 @@ fi
 
 # Check ruTorrent themes
 echo "  ${norm}[${green}+${norm}] Checking ruTorrent custom themes..."
-themes=$(ls -l ${CONFIG_PATH}/rutorrent/themes | egrep '^d' | awk '{print $9}')
+themes=$(ls -l ${CONFIG_PATH}/rutorrent/themes | grep -E '^d' | awk '{print $9}')
 for theme in ${themes}; do
   echo "    ${norm}[${blue}-${norm}] Copying custom theme ${blue}${theme}${norm}..."
   rm -rf "/var/www/rutorrent/plugins/theme/themes/${theme}"
@@ -465,7 +469,8 @@ chown -R rtorrent: \
   /etc/rtorrent \
   /var/cache/nginx \
   /var/lib/nginx \
-  /var/log/php8 \
+  /var/log/nginx \
+  /var/log/php81 \
   /var/run/nginx \
   /var/run/php-fpm \
   /var/run/rtorrent \
@@ -499,7 +504,7 @@ cat > /etc/services.d/php-fpm/run <<EOL
 #!/usr/bin/execlineb -P
 with-contenv
 s6-setuidgid ${PUID}:${PGID}
-php-fpm8 -F
+php-fpm81 -F
 EOL
 chmod +x /etc/services.d/php-fpm/run
 
