@@ -4,7 +4,7 @@
   <a href="https://hub.docker.com/r/k44sh/rutorrent/tags?page=1&ordering=last_updated"><img src="https://img.shields.io:/docker/v/k44sh/rutorrent/latest?logo=docker" alt="Latest Version"></a>
   <a href="https://hub.docker.com/r/k44sh/rutorrent/"><img src="https://img.shields.io:/docker/image-size/k44sh/rutorrent?logo=docker" alt="Docker Size"></a>
   <a href="https://hub.docker.com/r/k44sh/rutorrent/"><img src="https://img.shields.io:/docker/pulls/k44sh/rutorrent?logo=docker" alt="Docker Pulls"></a>
-  <a href="https://github.com/k44sh/rutorrent/actions?workflow=build"><img src="https://img.shields.io:/github/workflow/status/k44sh/rutorrent/build?logo=github" alt="Build Status"></a>
+  <a href="https://github.com/k44sh/rutorrent/actions?workflow=build"><img src="https://img.shields.io/github/actions/workflow/status/k44sh/rutorrent/build.yml?logo=github" alt="Build Status"></a>
 </p>
 
 ## About
@@ -16,9 +16,10 @@ ___
 
 * Run as non-root user
 * Multi-platform image
-* Latest [NGINX](https://nginx.org/download) release compiled from source with [php8](https://www.php.net/releases/8.0/en.php)
+* Latest [NGINX](https://nginx.org/download) with [php8](https://www.php.net/releases/8.0/en.php)
 * Latest [rTorrent](https://github.com/rakshasa/rtorrent) / [libTorrent](https://github.com/rakshasa/libtorrent) release compiled from source
-* Latest [ruTorrent](https://github.com/Novik/ruTorrent) release (`v4.0-beta.2.1`)
+* Name resolving with [c-ares](https://github.com/rakshasa/rtorrent/wiki/Performance-Tuning#rtrorrent-with-c-ares) for asynchronous DNS requests (including name resolves)
+* Latest [ruTorrent](https://github.com/Novik/ruTorrent) release (`v4.0-stable`)
 * ruTorrent [GeoIP2](https://github.com/Micdu70/geoip2-rutorrent) plugin
 * ruTorrent [Filemanager](https://github.com/nelu/rutorrent-filemanager) plugin
 * ruTorrent [Ratiocolors](https://github.com/Gyran/rutorrent-ratiocolor) plugin
