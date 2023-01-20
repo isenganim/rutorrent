@@ -140,6 +140,7 @@ RUN ./configure
 RUN make -j $(nproc)
 RUN make install -j $(nproc)
 RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
+RUN cp -f /usr/lib/php81/modules/geoip.so ${DIST_PATH}/usr/lib/php81/modules/
 
 WORKDIR /tmp/xmlrpc-c
 RUN ./configure \
@@ -149,7 +150,6 @@ RUN make -j $(nproc) CXXFLAGS="-flto"
 RUN make install -j $(nproc)
 RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
 RUN mkdir -p ${DIST_PATH}/usr/lib/php81/modules
-RUN cp -f /usr/lib/php81/modules/geoip.so ${DIST_PATH}/usr/lib/php81/modules/
 
 WORKDIR /tmp/libtorrent
 RUN ./autogen.sh
