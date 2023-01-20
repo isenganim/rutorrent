@@ -90,7 +90,7 @@ jobs:
             ./docker-bake.hcl
             ${{ steps.meta.outputs.bake-file }}
           targets: image-dev
-          push: ${{ github.ref == 'refs/heads/dev' }}
+          push: true
           set: |
             *.cache-from=type=local,src=/tmp/.docker-cache
             *.cache-to=type=local,dest=/tmp/.docker-cache-new,mode=max

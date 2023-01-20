@@ -10,7 +10,7 @@ ARG RUTORRENT_REVISION=06222a00375bdd0f1f1b5b58bda29e7025316428
 ARG MKTORRENT_VERSION=1.1
 ARG OVERLAY_VERSION=2.2.0.3
 
-FROM --platform=${BUILDPLATFORM:-linux/amd64} alpine:${ALPINE_VERSION} AS download
+FROM --platform=${BUILDPLATFORM} alpine:${ALPINE_VERSION} AS download
 RUN apk --update --no-cache add curl git tar xz subversion
 
 ARG OVERLAY_VERSION
