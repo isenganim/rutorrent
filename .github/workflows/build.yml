@@ -103,7 +103,7 @@ jobs:
             ./docker-bake.hcl
             ${{ steps.meta.outputs.bake-file }}
           targets: image-dev-arm
-          push: false
+          push: true
           set: |
             *.cache-from=type=local,src=/tmp/.docker-cache
             *.cache-to=type=local,dest=/tmp/.docker-cache-new,mode=max
