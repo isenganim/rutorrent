@@ -33,7 +33,7 @@ target "image-prod" {
 target "image-dev" {
   inherits = ["image"]
   platforms = [
-    "linux/amd64",
+    "linux/amd64"
   ]
 }
 
