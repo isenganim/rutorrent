@@ -1,4 +1,5 @@
 #!/usr/bin/with-contenv sh
+# shellcheck shell=sh
 
 echo=echo
 for cmd in echo /bin/echo; do
