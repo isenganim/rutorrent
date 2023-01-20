@@ -71,7 +71,7 @@ jobs:
       -
         name: Build Prod
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        uses: docker/bake-action@v2
+        uses: docker/build-push-action@v3
         with:
           files: |
             ./docker-bake.hcl
@@ -84,7 +84,7 @@ jobs:
       -
         name: Build Dev
         if: ${{ github.ref == 'refs/heads/dev' }}
-        uses: docker/bake-action@v2
+        uses: docker/build-push-action@v3
         with:
           files: |
             ./docker-bake.hcl
@@ -97,7 +97,7 @@ jobs:
       -
         name: Build Dev (ARM)
         if:  ${{ github.ref == 'refs/heads/dev' }}
-        uses: docker/bake-action@v2
+        uses: docker/build-push-action@v3
         with:
           files: |
             ./docker-bake.hcl
