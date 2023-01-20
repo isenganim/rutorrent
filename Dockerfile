@@ -87,11 +87,8 @@ RUN apk --update --no-cache add \
     brotli-dev \
     build-base \
     cppunit-dev \
-    fftw-dev \
     gd-dev \
     geoip-dev \
-    libnl3 \
-    libnl3-dev \
     libtool \
     libxslt-dev \
     linux-headers \
@@ -140,6 +137,7 @@ RUN ./configure
 RUN make -j $(nproc)
 RUN make install -j $(nproc)
 RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
+RUN mkdir -p ${DIST_PATH}/usr/lib/php81/modules
 RUN cp -f /usr/lib/php81/modules/geoip.so ${DIST_PATH}/usr/lib/php81/modules/
 
 WORKDIR /tmp/xmlrpc-c
@@ -149,7 +147,6 @@ RUN ./configure \
 RUN make -j $(nproc) CXXFLAGS="-flto"
 RUN make install -j $(nproc)
 RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
-RUN mkdir -p ${DIST_PATH}/usr/lib/php81/modules
 
 WORKDIR /tmp/libtorrent
 RUN ./autogen.sh
@@ -210,6 +207,7 @@ RUN apk --update --no-cache add \
     gzip \
     libstdc++ \
     mediainfo \
+    nano \
     ncurses \
     nginx \
     nginx-mod-http-headers-more \
@@ -249,7 +247,6 @@ RUN apk --update --no-cache add \
     unrar@314 \
     util-linux \
     zip \
-    zlib \
   && pip3 install --upgrade pip \
   && pip3 install cfscrape cloudscraper \
   && addgroup -g ${PGID} rtorrent \
