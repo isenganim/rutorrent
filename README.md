@@ -1,4 +1,4 @@
-<p align="center"><a href="https://github.com/k44sh/rutorrent" target="_blank"><img width="1699" src="https://raw.githubusercontent.com/k44sh/rutorrent/main/.ruTorrent.png"></a></p>
+<p align="center"><a href="https://github.com/k44sh/rutorrent" target="_blank"><img width="1536" src="https://raw.githubusercontent.com/k44sh/rutorrent/main/.rutorrent.png"></a></p>
 
 <p align="center">
   <a href="https://hub.docker.com/r/k44sh/rutorrent/tags?page=1&ordering=last_updated"><img src="https://img.shields.io:/docker/v/k44sh/rutorrent/latest?logo=docker" alt="Latest Version"></a>
@@ -24,6 +24,7 @@ ___
 * ruTorrent [Filemanager](https://github.com/nelu/rutorrent-filemanager) plugin
 * ruTorrent [Ratiocolors](https://github.com/Gyran/rutorrent-ratiocolor) plugin
 * ruTorrent [MaterialDesign](https://github.com/themightykitten/ruTorrent-MaterialDesign) theme
+* ruTorrent [rtModern-Remix](https://github.com/Teal-c/rtModern-Remix) theme
 * ruTorrent [QuickBox](https://github.com/TrimmingFool/club-QuickBox) theme
 * [Radarr](https://radarr.video)/[Sonarr](https://sonarr.tv) hardlinks compliance
 * [mktorrent](https://github.com/Rudde/mktorrent) installed for ruTorrent create plugin

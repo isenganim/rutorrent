@@ -32,15 +32,5 @@ target "image-prod" {
 
 target "image-dev" {
   inherits = ["image"]
-  platforms = [
-    "linux/amd64"
-  ]
-}
-
-target "image-dev-arm" {
-  inherits = ["image"]
-  platforms = [
-    "linux/arm64",
-    "linux/arm/v7"
-  ]
+  platforms = ["linux/amd64"]
 }

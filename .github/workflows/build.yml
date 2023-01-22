@@ -1,12 +1,19 @@
 name: build
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
+  schedule:
+    - cron: '0 6 */7 * *'
   push:
     branches:
-      - main
       - dev
     tags:
       - 'v*'
+    paths-ignore:
+      - '**.md'
 
 env:
   DOCKERHUB_SLUG: k44sh/rutorrent
@@ -18,9 +25,17 @@ jobs:
     steps:
       -
         name: Checkout
+        id: checkout
         uses: actions/checkout@v3
       -
-        name: Cache Docker layers
+        name: Variables
+        id: vars
+        run: |
+          echo "container_name=rutorrent" >> $GITHUB_OUTPUT
+          echo "timeout=120" >> $GITHUB_OUTPUT
+      -
+        name: Cache Docker
+        id: cache
         uses: actions/cache@v3
         with:
           path: /tmp/.docker-cache
@@ -37,6 +52,7 @@ jobs:
             ${{ env.GHCR_SLUG }}
           tags: |
             type=raw,value=dev,enable=${{ github.ref == 'refs/heads/dev' }}
+            type=raw,value=edge,enable=${{ github.event_name == 'schedule' }}
             type=raw,value=main,enable=${{ github.ref == 'refs/heads/main' }}
             type=match,pattern=v(.*),group=1
           labels: |
@@ -49,20 +65,24 @@ jobs:
             org.opencontainers.image.vendor=k44sh
       -
         name: Set up QEMU
+        id: set-qemu
         uses: docker/setup-qemu-action@v2
       -
         name: Set up Docker Buildx
+        id: set-buildx
         uses: docker/setup-buildx-action@v2
       -
         name: Login to DockerHub
-        if: ${{ startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/dev' }}
+        id: login-dh
+        if: ${{ startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/dev' || github.event_name == 'schedule' }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
         name: Login to GHCR
-        if: ${{ startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/dev' }}
+        id: login-ghcr
+        if: ${{ startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/dev' || github.event_name == 'schedule' }}
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
@@ -70,7 +90,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       -
         name: Build Prod
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        id: build-prod
+        if: ${{ startsWith(github.ref, 'refs/tags/v') || github.event_name == 'schedule' }}
         uses: docker/bake-action@v2
         with:
           files: |
@@ -79,10 +100,11 @@ jobs:
           targets: image-prod
           push: true
           set: |
-            *.cache-from=type=local,src=/tmp/.docker-cache
-            *.cache-to=type=local,dest=/tmp/.docker-cache-new,mode=max
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
       -
         name: Build Dev
+        id: build-dev
         if: ${{ github.ref == 'refs/heads/dev' }}
         uses: docker/bake-action@v2
         with:
@@ -92,28 +114,48 @@ jobs:
           targets: image-dev
           push: true
           set: |
-            *.cache-from=type=local,src=/tmp/.docker-cache
-            *.cache-to=type=local,dest=/tmp/.docker-cache-new,mode=max
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
       -
-        name: Build Dev (ARM)
-        if:  ${{ github.ref == 'refs/heads/dev' }}
-        uses: docker/bake-action@v2
-        with:
-          files: |
-            ./docker-bake.hcl
-            ${{ steps.meta.outputs.bake-file }}
-          targets: image-dev-arm
-          push: true
-          set: |
-            *.cache-from=type=local,src=/tmp/.docker-cache
-            *.cache-to=type=local,dest=/tmp/.docker-cache-new,mode=max
-      -
-        name: Move cache
+        name: Run Test
+        id: test
         run: |
-          rm -rf /tmp/.docker-cache
-          mv /tmp/.docker-cache-new /tmp/.docker-cache
+              docker run --rm -d --name ${{ steps.vars.outputs.container_name }} ${{ env.DOCKERHUB_SLUG }}:${{ steps.meta.outputs.version }}
+              for i in $(seq ${{ steps.vars.outputs.timeout }}); do
+                status=$(docker inspect -f '{{ .State.Health.Status }}' ${{ steps.vars.outputs.container_name }} 2>/dev/null)
+                if [[ $? -eq 0 ]]; then
+                  if [[ "${status}" == "healthy" ]]; then
+                    docker logs ${{ steps.vars.outputs.container_name }}
+                    echo -e "\n✅ The container is \e[1;32mhealthy\e[0m after \e[1;5m${i}\e[0m seconds\n"
+                    docker stop ${{ steps.vars.outputs.container_name }} >/dev/null 2>&1
+                    exit 0
+                  elif [[ "${status}" == "unhealthy" ]]; then
+                    echo -e "❌ The container is \e[1;33munhealthy\e[0m"
+                    docker stop ${{ steps.vars.outputs.container_name }} >/dev/null 2>&1
+                    exit 1
+                  elif [[ "${status}" == "starting" ]]; then
+                    echo "... starting"
+                  else
+                    echo -e "❓ The container is in \e[1;31munknown\e[0m state ($status)"
+                    docker stop ${{ steps.vars.outputs.container_name }} >/dev/null 2>&1
+                    exit 1
+                  fi
+                else
+                  echo -e "❌ \e[1;31mDocker error\e[0m"
+                  docker logs ${{ steps.vars.outputs.container_name }}
+                  exit 1
+                fi
+                sleep 1
+              done
+      -
+        name: Check Manifest
+        id: manifest
+        run: |
+          docker buildx imagetools inspect ${{ env.DOCKERHUB_SLUG }}:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ${{ env.GHCR_SLUG }}:${{ steps.meta.outputs.version }}
       -
         name: Inspect Image
+        id: inspect
         if: ${{ startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/dev' }}
         run: |
           docker pull ${{ env.DOCKERHUB_SLUG }}:${{ steps.meta.outputs.version }}

@@ -1,4 +1,5 @@
 ARG ALPINE_VERSION=3.17
+ARG ALPINE_S6_VERSION=${ALPINE_VERSION}-2.2.0.3
 ARG LIBSIG_VERSION=3.0.3
 ARG CARES_VERSION=1.18.1
 ARG CURL_VERSION=7.87.0
@@ -6,49 +7,128 @@ ARG GEOIP2_PHPEXT_VERSION=1.3.1
 ARG XMLRPC_VERSION=01.60.00
 ARG LIBTORRENT_VERSION=0.13.8
 ARG RTORRENT_VERSION=0.9.8
-ARG RUTORRENT_REVISION=06222a00375bdd0f1f1b5b58bda29e7025316428
+ARG RUTORRENT_REVISION=23bcd3345b930c17ce4d6886fa294ce4f656ec95
 ARG MKTORRENT_VERSION=1.1
-ARG OVERLAY_VERSION=2.2.0.3
-ARG BUILDPLATFORM=${BUILDPLATFORM:-linux/amd64}
 
-FROM --platform=${BUILDPLATFORM} alpine:${ALPINE_VERSION} AS download
-RUN apk --update --no-cache add curl git tar xz subversion
+FROM alpine:${ALPINE_VERSION} AS compile
 
-ARG OVERLAY_VERSION
-WORKDIR /dist/s6
-RUN curl -sSL "https://github.com/just-containers/s6-overlay/releases/download/v${OVERLAY_VERSION}/s6-overlay-amd64.tar.gz" | tar -xz --strip 1
+ENV DIST_PATH="/dist"
+
+RUN apk --update --no-cache add \
+    autoconf \
+    automake \
+    binutils \
+    brotli-dev \
+    build-base \
+    curl \
+    cppunit-dev \
+    fftw-dev \
+    gd-dev \
+    geoip-dev \
+    git \
+    libnl3 \
+    libnl3-dev \
+    libtool \
+    libxslt-dev \
+    linux-headers \
+    ncurses-dev \
+    nghttp2-dev \
+    openssl-dev \
+    pcre-dev \
+    php81-dev \
+    php81-pear \
+    subversion \
+    tar \
+    tree \
+    xz \
+    zlib-dev
 
 ARG LIBSIG_VERSION
-WORKDIR /dist/libsig
+WORKDIR /tmp/libsig
 RUN curl -sSL "http://ftp.gnome.org/pub/GNOME/sources/libsigc++/3.0/libsigc++-${LIBSIG_VERSION}.tar.xz" | tar -xJ --strip 1
+RUN ./configure
+RUN make -j $(nproc)
+RUN make install -j $(nproc)
+RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
 
 ARG CARES_VERSION
-WORKDIR /dist/cares
+WORKDIR /tmp/cares
 RUN curl -sSL "https://c-ares.haxx.se/download/c-ares-${CARES_VERSION}.tar.gz" | tar -xz --strip 1
+RUN ./configure
+RUN make -j $(nproc)
+RUN make install -j $(nproc)
+RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
 
 ARG CURL_VERSION
-WORKDIR /dist/curl
+WORKDIR /tmp/curl
 RUN curl -sSL "https://curl.haxx.se/download/curl-${CURL_VERSION}.tar.gz" | tar -xz --strip 1
+RUN ./configure \
+  --enable-ares \
+  --enable-tls-srp \
+  --enable-gnu-tls \
+  --with-brotli \
+  --with-ssl \
+  --with-zlib
+RUN make -j $(nproc)
+RUN make install -j $(nproc)
+RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
 
 ARG GEOIP2_PHPEXT_VERSION
-WORKDIR /dist/geoip2-phpext
+WORKDIR /tmp/geoip2-phpext
 RUN git clone -q "https://github.com/rlerdorf/geoip" . && git reset --hard ${GEOIP2_PHPEXT_VERSION} && rm -rf .git
+RUN set -e
+RUN phpize81
+RUN ./configure
+RUN make -j $(nproc)
+RUN make install -j $(nproc)
+RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
 
 ARG XMLRPC_VERSION
-WORKDIR /dist/xmlrpc-c
+WORKDIR /tmp/xmlrpc-c
 RUN svn checkout -q "http://svn.code.sf.net/p/xmlrpc-c/code/release_number/${XMLRPC_VERSION}/" . && rm -rf .svn
+RUN ./configure \
+   --disable-wininet-client \
+   --disable-libwww-client
+RUN make -j $(nproc) CXXFLAGS="-flto"
+RUN make install -j $(nproc)
+RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
+RUN mkdir -p ${DIST_PATH}/usr/lib/php81/modules
+RUN cp -f /usr/lib/php81/modules/geoip.so ${DIST_PATH}/usr/lib/php81/modules/
 
 ARG LIBTORRENT_VERSION
-WORKDIR /dist/libtorrent
+WORKDIR /tmp/libtorrent
 RUN git clone -q "https://github.com/rakshasa/libtorrent" . && git reset --hard v${LIBTORRENT_VERSION} && rm -rf .git
+RUN ./autogen.sh
+RUN ./configure \
+  --with-posix-fallocate
+RUN make -j $(nproc) CXXFLAGS="-O2 -flto"
+RUN make install -j $(nproc)
+RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
 
 ARG RTORRENT_VERSION
-WORKDIR /dist/rtorrent
+WORKDIR /tmp/rtorrent
 RUN git clone -q "https://github.com/rakshasa/rtorrent" . && git reset --hard v${RTORRENT_VERSION} && rm -rf .git
+RUN ./autogen.sh
+RUN ./configure \
+  --with-xmlrpc-c \
+  --with-ncurses
+RUN make -j $(nproc) CXXFLAGS="-O2 -flto"
+RUN make install -j $(nproc)
+RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
 
 ARG MKTORRENT_VERSION
-WORKDIR /dist/mktorrent
+WORKDIR /tmp/mktorrent
 RUN git clone -q "https://github.com/esmil/mktorrent" . && git reset --hard v${MKTORRENT_VERSION} && rm -rf .git
+RUN make -j $(nproc)
+RUN make install -j $(nproc)
+RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
+
+ARG ALPINE_VERSION
+FROM alpine:${ALPINE_VERSION} AS download
+
+ENV DIST_PATH="/dist"
+
+RUN apk --update --no-cache add curl git tar xz
 
 ARG RUTORRENT_REVISION
 WORKDIR /dist/rutorrent
@@ -61,127 +141,40 @@ RUN git clone -q "https://github.com/Micdu70/geoip2-rutorrent" . && rm -rf .git
 WORKDIR /dist/rutorrent-filemanager
 RUN git clone -q "https://github.com/nelu/rutorrent-filemanager" . && rm -rf .git
 
+WORKDIR /dist/rutorrent-ratio
+RUN git clone -q "https://github.com/Gyran/rutorrent-ratiocolor" . && rm -rf .git
+
 WORKDIR /dist/rutorrent-theme-material
 RUN git clone -q "https://github.com/TrimmingFool/ruTorrent-MaterialDesign" . && rm -rf .git
 
 WORKDIR /dist/rutorrent-theme-quick
 RUN git clone -q "https://github.com/TrimmingFool/club-QuickBox" . && rm -rf .git
 
-WORKDIR /dist/rutorrent-ratio
-RUN git clone -q "https://github.com/Gyran/rutorrent-ratiocolor" . && rm -rf .git
+WORKDIR /dist/rutorrent-theme-rtmodern-remix
+RUN git clone -q "https://github.com/Teal-c/rtModern-Remix" . && rm -rf .git
 
-WORKDIR /dist/geoip2-rutorrent
-RUN git clone -q "https://github.com/Micdu70/geoip2-rutorrent" . && rm -rf .git
+WORKDIR /dist/rutorrent-theme-rtmodern-remix-plex
+RUN git clone -q "https://github.com/Teal-c/rtModern-Remix" . && rm -rf .git
+RUN cat themes/plex.css > custom.css
+
+WORKDIR /dist/rutorrent-theme-rtmodern-remix-jellyfin
+RUN git clone -q "https://github.com/Teal-c/rtModern-Remix" . && rm -rf .git
+RUN cat themes/jellyfin.css > custom.css
+
+WORKDIR /dist/rutorrent-theme-rtmodern-remix-jellyfin-bg
+RUN git clone -q "https://github.com/Teal-c/rtModern-Remix" . && rm -rf .git
+RUN cat themes/jellyfin-bg.css > custom.css
+
+WORKDIR /dist/rutorrent-theme-rtmodern-remix-lightpink
+RUN git clone -q "https://github.com/Teal-c/rtModern-Remix" . && rm -rf .git
+RUN cat themes/light-pink.css > custom.css
 
 WORKDIR /dist/mmdb
 RUN curl -SsOL "https://github.com/crazy-max/geoip-updater/raw/mmdb/GeoLite2-City.mmdb"
 RUN curl -SsOL "https://github.com/crazy-max/geoip-updater/raw/mmdb/GeoLite2-Country.mmdb"
 
-ARG ALPINE_VERSION
-FROM alpine:${ALPINE_VERSION} AS compile
-
-RUN apk --update --no-cache add \
-    autoconf \
-    automake \
-    binutils \
-    brotli-dev \
-    build-base \
-    cppunit-dev \
-    gd-dev \
-    geoip-dev \
-    libtool \
-    libxslt-dev \
-    linux-headers \
-    ncurses-dev \
-    nghttp2-dev \
-    openssl-dev \
-    pcre-dev \
-    php81-dev \
-    php81-pear \
-    tar \
-    tree \
-    xz \
-    zlib-dev
-
-ENV DIST_PATH="/dist"
-COPY --from=download /dist /tmp
-
-WORKDIR /tmp/libsig
-RUN ./configure
-RUN make -j $(nproc)
-RUN make install -j $(nproc)
-RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
-
-WORKDIR /tmp/cares
-RUN ./configure
-RUN make -j $(nproc)
-RUN make install -j $(nproc)
-RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
-
-WORKDIR /tmp/curl
-RUN ./configure \
-  --enable-ares \
-  --enable-tls-srp \
-  --enable-gnu-tls \
-  --with-brotli \
-  --with-ssl \
-  --with-zlib
-RUN make -j $(nproc)
-RUN make install -j $(nproc)
-RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
-
-WORKDIR /tmp/geoip2-phpext
-RUN set -e
-RUN phpize81
-RUN ./configure
-RUN make -j $(nproc)
-RUN make install -j $(nproc)
-RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
-RUN mkdir -p ${DIST_PATH}/usr/lib/php81/modules
-RUN cp -f /usr/lib/php81/modules/geoip.so ${DIST_PATH}/usr/lib/php81/modules/
-
-WORKDIR /tmp/xmlrpc-c
-RUN ./configure \
-   --disable-wininet-client \
-   --disable-libwww-client
-RUN make -j $(nproc) CXXFLAGS="-flto"
-RUN make install -j $(nproc)
-RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
-
-WORKDIR /tmp/libtorrent
-RUN ./autogen.sh
-RUN ./configure \
-  --with-posix-fallocate
-RUN make -j $(nproc) CXXFLAGS="-O2 -flto"
-RUN make install -j $(nproc)
-RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
-
-WORKDIR /tmp/rtorrent
-RUN ./autogen.sh
-RUN ./configure \
-  --with-xmlrpc-c \
-  --with-ncurses
-RUN make -j $(nproc) CXXFLAGS="-O2 -flto"
-RUN make install -j $(nproc)
-RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
-
-WORKDIR /tmp/mktorrent
-RUN make -j $(nproc)
-RUN make install -j $(nproc)
-RUN make DESTDIR=${DIST_PATH} install -j $(nproc)
-
-ARG ALPINE_VERSION
-FROM alpine:${ALPINE_VERSION} as builder
-
-COPY --from=compile /dist /
-COPY --from=download /dist/s6 /
-COPY --from=download /dist/mmdb /var/mmdb
-COPY --from=download --chown=nobody:nogroup /dist/rutorrent /var/www/rutorrent
-COPY --from=download --chown=nobody:nogroup /dist/rutorrent-theme-material /var/www/rutorrent/plugins/theme/themes/MaterialDesign
-COPY --from=download --chown=nobody:nogroup /dist/rutorrent-theme-quick /var/www/rutorrent/plugins/theme/themes/QuickBox
-COPY --from=download --chown=nobody:nogroup /dist/rutorrent-ratio /var/www/rutorrent/plugins/ratiocolor
-COPY --from=download --chown=nobody:nogroup /dist/rutorrent-filemanager /var/www/rutorrent/plugins/filemanager
-COPY --from=download --chown=nobody:nogroup /dist/rutorrent-geoip2 /var/www/rutorrent/plugins/geoip2
+ARG ALPINE_S6_VERSION
+FROM crazymax/alpine-s6:${ALPINE_S6_VERSION} as builder
 
 ENV PYTHONPATH="$PYTHONPATH:/var/www/rutorrent" \
   S6_BEHAVIOUR_IF_STAGE2_FAILS="2" \
@@ -205,6 +198,7 @@ RUN apk --update --no-cache add \
     geoip \
     grep \
     gzip \
+    htop \
     libstdc++ \
     mediainfo \
     nano \
@@ -213,7 +207,6 @@ RUN apk --update --no-cache add \
     nginx-mod-http-headers-more \
     nginx-mod-http-dav-ext \
     nginx-mod-http-geoip2 \
-    nginx-mod-rtmp \
     openssl \
     pcre \
     php81 \
@@ -247,11 +240,11 @@ RUN apk --update --no-cache add \
     unrar@314 \
     util-linux \
     zip \
+    zlib \
   && pip3 install --upgrade pip \
   && pip3 install cfscrape cloudscraper \
   && addgroup -g ${PGID} rtorrent \
   && adduser -D -H -u ${PUID} -G rtorrent -s /bin/sh rtorrent \
-  && curl --version \
   && rm -rf /tmp/* /var/cache/apk/*
 
 RUN ln -sf /dev/stdout /var/log/nginx/access.log && \
@@ -260,9 +253,24 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/php81/error.log
 
 COPY rootfs /
+COPY --from=compile /dist /
+COPY --from=download /dist/mmdb /var/mmdb
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent /var/www/rutorrent
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent-geoip2 /var/www/rutorrent/plugins/geoip2
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent-filemanager /var/www/rutorrent/plugins/filemanager
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent-ratio /var/www/rutorrent/plugins/ratiocolor
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent-theme-material /var/www/rutorrent/plugins/theme/themes/MaterialDesign
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent-theme-quick /var/www/rutorrent/plugins/theme/themes/QuickBox
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent-theme-rtmodern-remix /var/www/rutorrent/plugins/theme/themes/rtModern-Remix
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent-theme-rtmodern-remix-plex /var/www/rutorrent/plugins/theme/themes/rtModern-Plex
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent-theme-rtmodern-remix-jellyfin /var/www/rutorrent/plugins/theme/themes/rtModern-Jellyfin
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent-theme-rtmodern-remix-jellyfin-bg /var/www/rutorrent/plugins/theme/themes/rtModern-Jellyfin-bg
+COPY --from=download --chown=nobody:nogroup /dist/rutorrent-theme-rtmodern-remix-lightpink /var/www/rutorrent/plugins/theme/themes/rtModern-LightPink
+
+RUN curl --version
 
 VOLUME [ "/config", "/data", "/passwd" ]
 
 ENTRYPOINT [ "/init" ]
 
-HEALTHCHECK --interval=30s --timeout=20s --start-period=10s CMD /usr/local/bin/healthcheck
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s CMD /usr/local/bin/healthcheck

@@ -1,5 +1,4 @@
 #!/usr/bin/with-contenv sh
-# shellcheck shell=sh
 
 echo=echo
 for cmd in echo /bin/echo; do
@@ -22,10 +21,9 @@ echo -e "\n${bold}rTorrent/ruTorrent Configuration${norm}\n"
 
 # General
 CONFIG_PATH=${CONFIG_PATH:-/config}
-DOWNLOAD_PATH=${DOWNLOAD_PATH:-/data/downloads}
 TOPDIR_PATH=${TOPDIR_PATH:-/data}
+DOWNLOAD_PATH=${DOWNLOAD_PATH:-${TOPDIR_PATH}/downloads}
 WAN_IP=${WAN_IP:-$(dig +short myip.opendns.com @resolver1.opendns.com)}
-WAN_IP=${WAN_IP:-$(curl ifconfig.me)}
 TZ=${TZ:-UTC}
 MEMORY_LIMIT=${MEMORY_LIMIT:-512M}
 UPLOAD_MAX_SIZE=${UPLOAD_MAX_SIZE:-16M}
@@ -142,7 +140,7 @@ sed -e "s!@WEBDAV_AUTHBASIC_STRING@!$WEBDAV_AUTHBASIC_STRING!g" \
 # Healthcheck
 echo "  ${norm}[${green}+${norm}] Setting healthcheck script..."
 cat > /usr/local/bin/healthcheck <<EOL
-#!/bin/sh
+#!/usr/bin/env sh
 set -e
 
 # rTorrent
@@ -165,12 +163,10 @@ mkdir -p /passwd \
   /var/run/nginx \
   /var/run/php-fpm \
   /var/run/rtorrent \
-  ${CONFIG_PATH}/rtorrent \
   ${CONFIG_PATH}/geoip \
   ${CONFIG_PATH}/rtorrent/log \
   ${CONFIG_PATH}/rtorrent/.session \
   ${CONFIG_PATH}/rtorrent/watch \
-  ${CONFIG_PATH}/rutorrent \
   ${CONFIG_PATH}/rutorrent/conf/users \
   ${CONFIG_PATH}/rutorrent/plugins \
   ${CONFIG_PATH}/rutorrent/plugins-conf \
